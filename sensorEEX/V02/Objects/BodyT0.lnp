@@ -1,0 +1,10 @@
+".\Objects\STARTUP.obj",
+".\Objects\Main.obj",
+".\Objects\Timer.obj",
+".\Objects\Control.obj",
+".\Objects\UART1.obj",
+".\Objects\UART2.obj",
+".\Objects\WIFI.obj",
+".\Objects\eeprom.obj" 
+TO ".\Objects\BodyT0" 
+PRINT(".\Listings\BodyT0.m51") RAMSIZE(256) 

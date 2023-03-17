@@ -1,0 +1,1050 @@
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE WIFI
+OBJECT MODULE PLACED IN .\Objects\WIFI.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Source\WIFI.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Include) DEBUG OBJECTEXT
+                    -END PRINT(.\Listings\WIFI.lst) TABS(2) OBJECT(.\Objects\WIFI.obj)
+
+line level    source
+
+   1          /****************************************Copyright (c)*********************************************
+   2          **                                     佛山三俊电子有限公司
+   3          **                         开   发   部
+   4          **--------------文件信息---------------------------------------------------------------------------
+   5          **文   件   名: WIFI.c
+   6          **创   建   人: 
+   7          **创 建 日 期 ：
+   8          **描        述: 
+   9          **--------------当前版本修订-----------------------------------------------------------------------
+  10          ** 修改人: 
+  11          ** 日　期: 
+  12          ** 描　述: 
+  13          **
+  14          **************************************************************************************************/
+  15          #define WIFI_GLOBALS
+  16          
+  17          #include "Includes.h"
+  18          
+  19          const  char xdata APPLY_AT[]="+++";
+  20          const  char xdata APPLY_AT_ACK[]="a";
+  21          
+  22          const  char xdata ENT_AT[]="a";
+  23          const  char xdata ENT_AT_ACK[]="+ok\r\n\r\n";
+  24          
+  25          const  char xdata WMAC[]="at+wsmac\r";
+  26          const  char xdata WMAC_ACK[]="AT+WSMAC\n\r+ok=A5A4A3A2A1A0\r\n\r\n";
+  27          
+  28          // add 2023/2/12 追加注册包设定
+  29          const  char xdata NREGEN[]="at+nregen=A,on\r";
+  30          const  char xdata NREGEN_ACK[]="AT+NREGEN=A,on\n\r+ok\r\n\r\n";
+  31          
+  32          const  char xdata NREGDT[]="at+nregdt=A,CL%MACCREG\r";
+  33          const  char xdata NREGDT_ACK[]="AT+nregdt=A,%MAC\n\r+ok\r\n\r\n";
+  34          
+  35          // add 2023/2/12 end
+  36          
+  37          const  char xdata WMODE[]="at+wmode=sta\r";
+  38          const  char xdata WMODE_ACK[]="AT+WMODE=sta\n\r+ok\r\n\r\n";
+  39          
+  40          const  char xdata WNETP[]="at+netp=tcp,client,80,15.152.44.45\r";
+  41          const  char xdata WNETP_ACK[]="AT+NETP=tcp,client,80,15.152.44.45\n\r+ok\r\n\r\n";
+  42          
+  43          //const  char xdata WNETP[]="at+netp=tcp,client,80,223.134.3.129\r";
+  44          //const  char xdata WNETP_ACK[]="AT+NETP=tcp,client,80,223.134.3.129\n\r+ok\r\n\r\n";
+  45          
+  46          // legacy IP 2020/2/20
+  47          //const  char xdata WNETP[]="at+netp=tcp,client,80,47.96.101.117\r";
+  48          //const  char xdata WNETP_ACK[]="AT+NETP=tcp,client,80,47.96.101.117\n\r+ok\r\n\r\n";
+  49          
+  50          const  char xdata WSLK[]="at+wslk\r";
+  51          const  char xdata WSLK_ACK[]="AT+WSLK\n\r+ok=SSID(MAC)\r\n\r\n";
+  52          
+  53          const  char xdata TCPON[]="at+tcpdis=on\r";
+  54          const  char xdata TCPON_ACK[]="AT+TCPDIS=on\n\r+ok\r\n\r\n";
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 2   
+
+  55          
+  56          const  char xdata TCPEN[]="at+tcpdis\r";
+  57          const  char xdata TCPEN_ACK[]="AT+TCPDIS\n\r+ok=on\r\n\r\n";
+  58          
+  59          const  char xdata TCPLK[]="at+tcplk\r";
+  60          const  char xdata TCPLK_ACK[]="AT+TCPLK\n\r+ok=on\r\n\r\n";
+  61          
+  62          const  char xdata RESET[]="at+z\r";
+  63          const  char xdata RESET_ACK[]="AT+Z\n\r+ok\r\n\r\n";
+  64          
+  65          // add para
+  66          const  char xdata TCPTO[]="AT+TCPTO=0\r";
+  67          const  char xdata TCPTO_ACK[]="AT+TCPTO=0\n\r+ok\r\n\r\n";
+  68          
+  69          const  char xdata CMDPW[]="AT+CMDPW=HF\r";
+  70          const  char xdata CMDPW_ACK[]="AT+CMDPW=HF\n\r+ok\r\n\r\n";
+  71          
+  72          // add command on transfer mode
+  73          const  char xdata WMACHF[]="HFAT+WSMAC\r";
+  74          const  char xdata WMACHF_ACK[]="AT+WSMAC\n\r+ok=A5A4A3A2A1A0\r\n\r\n";
+  75          
+  76          const  char xdata TCPLKHF[]="HFAT+TCPLK\r";
+  77          const  char xdata TCPLKHF_ACK[]="AT+TCPLK\n\r+ok=on\r\n\r\n";
+  78          
+  79          const  char xdata TCPONHF[]="HFAT+TCPDIS=on\r";
+  80          const  char xdata TCPONHF_ACK[]="AT+TCPDIS=on\n\r+ok\r\n\r\n";
+  81          
+  82          const  char xdata TCPENHF[]="HFAT+TCPDIS\r";
+  83          const  char xdata TCPENHF_ACK[]="AT+TCPDIS\n\r+ok=on\r\n\r\n";
+  84          
+  85          const  char xdata SENSOR_VERSION[]="1.0.0_2";  // VR-BB后reset处理对应
+  86          
+  87          #define REC_WIFI_DATA   (Uart2NoRecTime >= 30 && pUART2_rptr >= 1)
+  88          
+  89          
+  90          void fInitWifi(void)
+  91          {
+  92   1        MacAddr[0] = 0xB1;
+  93   1        MacAddr[1] = 0xB2;
+  94   1        MacAddr[2] = 0xB3;
+  95   1        MacAddr[3] = 0xB4;
+  96   1        MacAddr[4] = 0xB5;
+  97   1        MacAddr[5] = 0xB6;
+  98   1        
+  99   1        fClean_RecWIFI_Buf();
+ 100   1        StepCommWifi = WIFI_POWERON;
+ 101   1        isFirst = 0; // is first
+ 102   1      //  StepCommWifi = SERVER_HAND;     //debug
+ 103   1        WaitSendWifi = 600;
+ 104   1        
+ 105   1        bMamori = 1;          //add 2022-2-12
+ 106   1      }
+ 107          
+ 108          void fSendServerHand(void)
+ 109          {
+ 110   1        u16 Sum;
+ 111   1        u8  i;
+ 112   1        
+ 113   1        Sum = 0;
+ 114   1        Uart2Send('C');
+ 115   1        Sum += 'C';
+ 116   1        Uart2Send('L');
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 3   
+
+ 117   1        Sum += 'L';
+ 118   1        
+ 119   1        Uart2Send(MacAddr[0]);
+ 120   1        Sum += MacAddr[0];
+ 121   1        Uart2Send(MacAddr[1]);
+ 122   1        Sum += MacAddr[1];
+ 123   1        Uart2Send(MacAddr[2]);
+ 124   1        Sum += MacAddr[2];
+ 125   1        Uart2Send(MacAddr[3]);
+ 126   1        Sum += MacAddr[3];
+ 127   1        Uart2Send(MacAddr[4]);
+ 128   1        Sum += MacAddr[4];
+ 129   1        Uart2Send(MacAddr[5]);
+ 130   1        Sum += MacAddr[5];
+ 131   1        
+ 132   1        Uart2Send(19);  // 12+7
+ 133   1        Sum += 19;
+ 134   1        
+ 135   1        Uart2Send('H');
+ 136   1        Sum += 'H';
+ 137   1        
+ 138   1        for(i=0;i<7;i++)
+ 139   1        {
+ 140   2          Uart2Send(SENSOR_VERSION[i]);
+ 141   2          Sum += SENSOR_VERSION[i];
+ 142   2        }
+ 143   1        
+ 144   1        Uart2Send((unsigned char)(Sum / 256));
+ 145   1        Uart2Send((unsigned char)(Sum));
+ 146   1        
+ 147   1        // Uart2Send(StepCommSensor);  //for debug   yaoshanchu!!!
+ 148   1        
+ 149   1      
+ 150   1      }
+ 151          
+ 152          void fSendServerData(void)
+ 153          {
+ 154   1        u16 Sum;
+ 155   1        u8  i;
+ 156   1        
+ 157   1        Sum = 0;
+ 158   1        Uart2Send('C');
+ 159   1        Sum += 'C';
+ 160   1        Uart2Send('L');
+ 161   1        Sum += 'L';
+ 162   1        
+ 163   1        Uart2Send(MacAddr[0]);
+ 164   1        Sum += MacAddr[0];
+ 165   1        Uart2Send(MacAddr[1]);
+ 166   1        Sum += MacAddr[1];
+ 167   1        Uart2Send(MacAddr[2]);
+ 168   1        Sum += MacAddr[2];
+ 169   1        Uart2Send(MacAddr[3]);
+ 170   1        Sum += MacAddr[3];
+ 171   1        Uart2Send(MacAddr[4]);
+ 172   1        Sum += MacAddr[4];
+ 173   1        Uart2Send(MacAddr[5]);
+ 174   1        Sum += MacAddr[5];
+ 175   1        
+ 176   1        Uart2Send(47);    //72 to 47    2022-2-12
+ 177   1        Sum += 47;
+ 178   1        
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 4   
+
+ 179   1        Uart2Send('4');
+ 180   1        Sum += '4';
+ 181   1        
+ 182   1        for(i=0;i<4;i++)
+ 183   1        {
+ 184   2          Uart2Send(timestamp.time[i]);
+ 185   2          Sum += timestamp.time[i];
+ 186   2        }
+ 187   1        
+ 188   1        for(i=0;i<31;i++)    //56 to 31.   2022-2-12
+ 189   1        {
+ 190   2          Uart2Send(UART1_buffer[i]);
+ 191   2          Sum += UART1_buffer[i];
+ 192   2        }
+ 193   1        
+ 194   1        Uart2Send(Sum / 256);
+ 195   1        Uart2Send(Sum);
+ 196   1      }
+ 197          
+ 198          
+ 199          //add by 2022-2-12
+ 200          void fSend_CmdData2(void)
+ 201          {
+ 202   1        u16 Sum;
+ 203   1        u8  i;
+ 204   1        
+ 205   1        Sum = 0;
+ 206   1        Uart2Send('C');
+ 207   1        Sum += 'C';
+ 208   1        Uart2Send('L');
+ 209   1        Sum += 'L';
+ 210   1        
+ 211   1        Uart2Send(MacAddr[0]);
+ 212   1        Sum += MacAddr[0];
+ 213   1        Uart2Send(MacAddr[1]);
+ 214   1        Sum += MacAddr[1];
+ 215   1        Uart2Send(MacAddr[2]);
+ 216   1        Sum += MacAddr[2];
+ 217   1        Uart2Send(MacAddr[3]);
+ 218   1        Sum += MacAddr[3];
+ 219   1        Uart2Send(MacAddr[4]);
+ 220   1        Sum += MacAddr[4];
+ 221   1        Uart2Send(MacAddr[5]);
+ 222   1        Sum += MacAddr[5];
+ 223   1        
+ 224   1        i = 9 + 2 + 2;
+ 225   1        
+ 226   1        Uart2Send(i);
+ 227   1        Sum += i;
+ 228   1        
+ 229   1        Uart2Send(ServerCommand);  //the name of command
+ 230   1        Uart2Send(bCommandResult);        //the result of command
+ 231   1        
+ 232   1        Uart2Send(Sum / 256);
+ 233   1        Uart2Send(Sum);
+ 234   1        
+ 235   1      }
+ 236          
+ 237          // for trace. 
+ 238          void fSendServerDebug(char dat)
+ 239          {
+ 240   1        u16 Sum;
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 5   
+
+ 241   1        u8  i;
+ 242   1        
+ 243   1        Sum = 0;
+ 244   1        Uart2Send('C');
+ 245   1        Sum += 'C';
+ 246   1        Uart2Send('L');
+ 247   1        Sum += 'L';
+ 248   1        
+ 249   1        Uart2Send(MacAddr[0]);
+ 250   1        Sum += MacAddr[0];
+ 251   1        Uart2Send(MacAddr[1]);
+ 252   1        Sum += MacAddr[1];
+ 253   1        Uart2Send(MacAddr[2]);
+ 254   1        Sum += MacAddr[2];
+ 255   1        Uart2Send(MacAddr[3]);
+ 256   1        Sum += MacAddr[3];
+ 257   1        Uart2Send(MacAddr[4]);
+ 258   1        Sum += MacAddr[4];
+ 259   1        Uart2Send(MacAddr[5]);
+ 260   1        Sum += MacAddr[5];
+ 261   1        
+ 262   1        Uart2Send(68);
+ 263   1        Sum += 68;
+ 264   1        
+ 265   1        Uart2Send(71);
+ 266   1        Sum += 71;
+ 267   1        
+ 268   1        Uart2Send(dat);    //cmd
+ 269   1        Sum += dat;
+ 270   1      
+ 271   1        for(i=0;i<4;i++)
+ 272   1        {
+ 273   2          Uart2Send(timestamp.time[i]);
+ 274   2          Sum += timestamp.time[i];
+ 275   2        }
+ 276   1        
+ 277   1      //  for(i=0;i<31;i++)    //56 to 31.   2022-2-12
+ 278   1      //  {
+ 279   1      //    Uart2Send(UART1_buffer[i]);
+ 280   1      //    Sum += UART1_buffer[i];
+ 281   1      //  }
+ 282   1        
+ 283   1        Uart2Send(Sum / 256);
+ 284   1        Uart2Send(Sum);
+ 285   1      }
+ 286          
+ 287          u8 fVerifyServerCammand(void)
+ 288          {
+ 289   1        u8 Command;
+ 290   1        u8 i;
+ 291   1        u16 CheckSum;
+ 292   1        
+ 293   1        Command = 0;
+ 294   1        CheckSum = 0;
+ 295   1        
+ 296   1        for(i = 0; i < (pUART2_rptr - 2); i++) CheckSum += UART2_buffer[i];         //sum data except last two data
+ 297   1        
+ 298   1        if(UART2_buffer[pUART2_rptr - 1] != (unsigned char)(CheckSum)) Command = 0; //check sum low byte
+ 299   1        else if(UART2_buffer[pUART2_rptr - 2] != (unsigned char)(CheckSum >> 8)) Command = 0; //check sum high by
+             -te
+ 300   1        else if(UART2_buffer[0] != 'S' || UART2_buffer[1] != 'V') Command = 0;      //check frame head
+ 301   1        else if(UART2_buffer[2] != MacAddr[0]) Command = 0;                         //check ID
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 6   
+
+ 302   1        else if(UART2_buffer[3] != MacAddr[1]) Command = 0;
+ 303   1        else if(UART2_buffer[4] != MacAddr[2]) Command = 0;
+ 304   1        else if(UART2_buffer[5] != MacAddr[3]) Command = 0;
+ 305   1        else if(UART2_buffer[6] != MacAddr[4]) Command = 0;
+ 306   1        else if(UART2_buffer[7] != MacAddr[5]) Command = 0;
+ 307   1        else if(UART2_buffer[8] != pUART2_rptr) Command = 0;                        //check frame length
+ 308   1        else Command = 1;
+ 309   1        
+ 310   1        Command = 1;
+ 311   1        
+ 312   1        return Command;
+ 313   1      }
+ 314          
+ 315          //add 2022-2-12
+ 316          void afterRevServerCommand(void){
+ 317   1        
+ 318   1        bCommandResult = 0;
+ 319   1        
+ 320   1        switch(ServerCommand){
+ 321   2          case 'x':                  //pause the Mamori
+ 322   2            bMamori = 0;
+ 323   2            //bCommandResult = 1;
+ 324   2          break;
+ 325   2          
+ 326   2          case 'c':                  //resum the Marori
+ 327   2              bMamori = 1;
+ 328   2          
+ 329   2              StepCommSensor = HAND2_SENSOR;
+ 330   2              //bCommandResult = 1;
+ 331   2          break;  
+ 332   2          
+ 333   2          case 'T':
+ 334   2            if(ReplyTime>0 && ReplyTime <=10){
+ 335   3              SendInterval= ReplyTime*100;  
+ 336   3              iapErase(MAMORI_T_ADDR);
+ 337   3              iapWrite(MAMORI_T_ADDR,ReplyTime);
+ 338   3              //bCommandResult = ReplyTime;
+ 339   3            }
+ 340   2          break;
+ 341   2            
+ 342   2          case 'G':
+ 343   2          case 'u':
+ 344   2            StepCommWifi = REC_SERVER_COMMAND;      //turn to command mode
+ 345   2          
+ 346   2            bServer_Cmd_Ack = 0;
+ 347   2            bServer_Cmd_res = 0;
+ 348   2          break;
+ 349   2          
+ 350   2      
+ 351   2      //    default:
+ 352   2      //      //StepCommWifi = REC_SERVER_COMMAND;      //turn to command mode
+ 353   2      //      StepCommWifi = WIFI_IDLE; 
+ 354   2      //      bTmp = 0;
+ 355   2      //    break;
+ 356   2        }
+ 357   1        
+ 358   1        fSend_CmdData2();
+ 359   1      
+ 360   1      }
+ 361          
+ 362          void fClean_RecWIFI_Buf(void)
+ 363          {
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 7   
+
+ 364   1        u8 i;
+ 365   1        for(i=0;i<70;i++) UART2_buffer[i] = 0;
+ 366   1        Uart2NoRecTime = 0;
+ 367   1        pUART2_rptr = 0;
+ 368   1      }
+ 369          
+ 370          void fSendToWIFI(void)
+ 371          {
+ 372   1        switch(StepCommWifi)
+ 373   1        {
+ 374   2          case WIFI_APPLY_AT: 
+ 375   2            fClean_RecWIFI_Buf();
+ 376   2            Uart2SendStr(APPLY_AT); 
+ 377   2            StepCommWifi = WIFI_APPLY_AT_ACK;
+ 378   2          break;
+ 379   2            
+ 380   2          case WIFI_ENT_AT: 
+ 381   2            fClean_RecWIFI_Buf();
+ 382   2            Uart2SendStr(ENT_AT); 
+ 383   2            StepCommWifi = WAIT_ENT_AT_ACK;
+ 384   2          break;
+ 385   2          
+ 386   2          case WIFI_WMAC:   
+ 387   2            fClean_RecWIFI_Buf();
+ 388   2            Uart2SendStr(WMAC); 
+ 389   2            StepCommWifi = WIFI_WMAC_ACK;
+ 390   2          break;
+ 391   2          
+ 392   2          // add 2023/2/12 start
+ 393   2          case WIFI_NREGEN:   
+ 394   2            fClean_RecWIFI_Buf();
+ 395   2            Uart2SendStr(NREGEN); 
+ 396   2            StepCommWifi = WIFI_NREGEN_ACK;
+ 397   2          break;
+ 398   2            
+ 399   2          case WIFI_NREGDT:   
+ 400   2            fClean_RecWIFI_Buf();
+ 401   2            Uart2SendStr(NREGDT); 
+ 402   2            StepCommWifi = WIFI_NREGDT_ACK;
+ 403   2          break;      
+ 404   2          // add 2023/2/12 end
+ 405   2          
+ 406   2          case WIFI_WMAC_SEC:   
+ 407   2            fClean_RecWIFI_Buf();
+ 408   2            Uart2SendStr(WMACHF); 
+ 409   2            StepCommWifi = WIFI_WMAC_SEC_ACK;
+ 410   2          break;
+ 411   2          
+ 412   2          case WIFI_WMODE:
+ 413   2            fClean_RecWIFI_Buf();
+ 414   2            Uart2SendStr(WMODE); 
+ 415   2            StepCommWifi = WIFI_WMODE_ACK;
+ 416   2          break;
+ 417   2            
+ 418   2          case WIFI_WNETP:
+ 419   2            fClean_RecWIFI_Buf();
+ 420   2            Uart2SendStr(WNETP); 
+ 421   2            StepCommWifi = WIFI_WNETP_ACK;
+ 422   2          break;
+ 423   2          
+ 424   2          case WIFI_TCPTO:
+ 425   2            fClean_RecWIFI_Buf();
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 8   
+
+ 426   2            Uart2SendStr(TCPTO); 
+ 427   2            StepCommWifi = WIFI_TCPTO_ACK;
+ 428   2          break;
+ 429   2              
+ 430   2          case WIFI_CMDPW:
+ 431   2            fClean_RecWIFI_Buf();
+ 432   2            Uart2SendStr(CMDPW); 
+ 433   2            StepCommWifi = WIFI_CMDPW_ACK;
+ 434   2          break;
+ 435   2          
+ 436   2          case WIFI_RESET1: 
+ 437   2            fClean_RecWIFI_Buf();
+ 438   2            Uart2SendStr(RESET); 
+ 439   2            StepCommWifi = WIFI_RESET1_ACK; 
+ 440   2          break;
+ 441   2          
+ 442   2          case WIFI_APPLY1_AT: 
+ 443   2            fClean_RecWIFI_Buf();
+ 444   2            Uart2SendStr(APPLY_AT); 
+ 445   2            StepCommWifi = WIFI_APPLY1_AT_ACK;
+ 446   2          break;
+ 447   2            
+ 448   2          case WIFI_ENT1_AT:  
+ 449   2            fClean_RecWIFI_Buf();
+ 450   2            Uart2SendStr(ENT_AT); 
+ 451   2            StepCommWifi = WAIT_ENT1_AT_ACK;
+ 452   2          break;
+ 453   2          
+ 454   2          case WIFI_WSLK:
+ 455   2            fClean_RecWIFI_Buf();
+ 456   2            Uart2SendStr(WSLK); 
+ 457   2            StepCommWifi = WIFI_WSLK_ACK;
+ 458   2          break;
+ 459   2          
+ 460   2          case WIFI_TCPON:  
+ 461   2            fClean_RecWIFI_Buf();
+ 462   2            Uart2SendStr(TCPON); 
+ 463   2            StepCommWifi = WIFI_TCPON_ACK;
+ 464   2          break;
+ 465   2          
+ 466   2          case WIFI_TCPON_SEC:  
+ 467   2            fClean_RecWIFI_Buf();
+ 468   2            Uart2SendStr(TCPONHF); 
+ 469   2            StepCommWifi = WIFI_TCPON_SEC_ACK;
+ 470   2          break;
+ 471   2          
+ 472   2          case WIFI_TCPEN:  
+ 473   2            fClean_RecWIFI_Buf();
+ 474   2            Uart2SendStr(TCPEN); 
+ 475   2            StepCommWifi = WIFI_TCPEN_ACK;
+ 476   2          break;
+ 477   2          
+ 478   2          case WIFI_TCPEN_SEC:  
+ 479   2            fClean_RecWIFI_Buf();
+ 480   2            Uart2SendStr(TCPENHF); 
+ 481   2            StepCommWifi = WIFI_TCPEN_SEC_ACK;
+ 482   2          break;
+ 483   2          
+ 484   2          case WIFI_TCPLK:  
+ 485   2            fClean_RecWIFI_Buf();
+ 486   2            Uart2SendStr(TCPLK); 
+ 487   2            StepCommWifi = WIFI_TCPLK_ACK;
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 9   
+
+ 488   2          break;
+ 489   2          
+ 490   2          case WIFI_TCPLK_SEC:  
+ 491   2            fClean_RecWIFI_Buf();
+ 492   2            Uart2SendStr(TCPLKHF); 
+ 493   2            StepCommWifi = WIFI_TCPLK_SEC_ACK;
+ 494   2          break;
+ 495   2          
+ 496   2          case WIFI_RESET2: 
+ 497   2            fClean_RecWIFI_Buf();
+ 498   2            Uart2SendStr(RESET); 
+ 499   2            StepCommWifi = WIFI_RESET2_ACK; 
+ 500   2          break;
+ 501   2          
+ 502   2          case INIT_WIFI:             //wifi模块初始化复位成功后进入INIT_WIFI状态
+ 503   2            if(StepCommSensor == IDLE_SENSOR) //if sensor ready,do shake hand
+ 504   2            {
+ 505   3              StepCommWifi = SERVER_HAND;
+ 506   3            }
+ 507   2          break;
+ 508   2            
+ 509   2          case SERVER_HAND:           //shake hand and wait for ack
+ 510   2            fClean_RecWIFI_Buf();
+ 511   2            fSendServerHand();
+ 512   2            StepCommWifi = SERVER_HAND_ACK;
+ 513   2          break;  
+ 514   2            
+ 515   2          // wifi send 
+ 516   2          
+ 517   2          case WIFI_IDLE:             //after success shake hand enter idle status
+ 518   2            if(bSend_WIFI_Data)       //set after recevive sensor data
+ 519   2            {
+ 520   3              if(bMamori){
+ 521   4                bSend_WIFI_Data = 0;    //surrounding parameter send to server
+ 522   4                fSendServerData();
+ 523   4              }
+ 524   3            }
+ 525   2            
+ 526   2            // for trace 2022-9-28
+ 527   2            if(bSend_MIO_3_1000)  // RC of command 3 is 0
+ 528   2            {
+ 529   3              bSend_MIO_3_1000 = 0;
+ 530   3              fSendServerDebug('X');
+ 531   3            }
+ 532   2            else if(bSend_MIO_4_1000) // RC of command 4 is 0
+ 533   2            {
+ 534   3              bSend_MIO_4_1000 = 0;
+ 535   3              fSendServerDebug('Y');
+ 536   3            }
+ 537   2      
+ 538   2          break;
+ 539   2            
+ 540   2          case REC_SERVER_COMMAND:    //success for received command of server, wait for reply data
+ 541   2            if(bServer_Cmd_Ack)
+ 542   2            {
+ 543   3              bServer_Cmd_Ack = 0;
+ 544   3              //fSend_CmdData();
+ 545   3              fSend_CmdData2();     //tmp  2022-2-12
+ 546   3              if(ServerCommand != 'u'){
+ 547   4                StepCommWifi = WIFI_IDLE;
+ 548   4              }
+ 549   3              else{
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 10  
+
+ 550   4                WaitSendWifi = 1500;
+ 551   4                StepCommWifi = SERVER_HAND;
+ 552   4              }
+ 553   3            } else if(bServer_Cmd_res){
+ 554   3              bServer_Cmd_res = 0;
+ 555   3              fSend_CmdData2();
+ 556   3            }       
+ 557   2          break;
+ 558   2      
+ 559   2      
+ 560   2        }
+ 561   1      }
+ 562              
+ 563          void fRecWifi(void)
+ 564          {
+ 565   1        
+ 566   1        switch(StepCommWifi)
+ 567   1        {
+ 568   2          case WIFI_APPLY_AT_ACK: 
+ 569   2            if(REC_WIFI_DATA) 
+ 570   2            {
+ 571   3              if(UART2_buffer[0] == 'a') 
+ 572   3              {
+ 573   4                StepCommWifi = WIFI_ENT_AT;
+ 574   4              }
+ 575   3            }
+ 576   2            else if(Uart2NoRecTime >= 100) 
+ 577   2            {
+ 578   3              WaitSendWifi = 100;
+ 579   3              StepCommWifi = WIFI_APPLY_AT;
+ 580   3            }
+ 581   2          break;
+ 582   2        
+ 583   2          case WAIT_ENT_AT_ACK:   
+ 584   2            if(REC_WIFI_DATA) 
+ 585   2            {
+ 586   3              if(UART2_buffer[0] == '+' && UART2_buffer[1] == 'o' && UART2_buffer[2] == 'k') 
+ 587   3              {
+ 588   4                StepCommWifi = WIFI_WMAC;
+ 589   4              }
+ 590   3            }
+ 591   2            else if(Uart2NoRecTime >= 100) 
+ 592   2            {
+ 593   3              WaitSendWifi = 100;
+ 594   3              StepCommWifi = WIFI_APPLY_AT;
+ 595   3            }
+ 596   2          break;
+ 597   2          
+ 598   2          case WIFI_WMAC_ACK:   
+ 599   2            if(REC_WIFI_DATA) 
+ 600   2            {
+ 601   3              if(UART2_buffer[10] == '+' && UART2_buffer[11] == 'o' && UART2_buffer[12] == 'k') 
+ 602   3              { 
+ 603   4                MacAddr[0] = IntegrateAscToHex(UART2_buffer[14],UART2_buffer[15]);
+ 604   4                MacAddr[1] = IntegrateAscToHex(UART2_buffer[16],UART2_buffer[17]);
+ 605   4                MacAddr[2] = IntegrateAscToHex(UART2_buffer[18],UART2_buffer[19]);
+ 606   4                MacAddr[3] = IntegrateAscToHex(UART2_buffer[20],UART2_buffer[21]);
+ 607   4                MacAddr[4] = IntegrateAscToHex(UART2_buffer[22],UART2_buffer[23]);
+ 608   4                MacAddr[5] = IntegrateAscToHex(UART2_buffer[24],UART2_buffer[25]);
+ 609   4                
+ 610   4                StepCommWifi = WIFI_NREGEN;
+ 611   4              } 
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 11  
+
+ 612   3            }
+ 613   2            else if(Uart2NoRecTime >= 100) 
+ 614   2            {
+ 615   3              WaitSendWifi = 100;
+ 616   3              StepCommWifi = WIFI_WMAC;
+ 617   3            }
+ 618   2          break;
+ 619   2            
+ 620   2          // add 2023-2-13 start
+ 621   2          case WIFI_NREGEN_ACK:
+ 622   2            if(REC_WIFI_DATA) 
+ 623   2            {
+ 624   3              if(UART2_buffer[16] == '+' && UART2_buffer[17] == 'o' && UART2_buffer[18] == 'k') 
+ 625   3              {
+ 626   4                StepCommWifi = WIFI_NREGDT;
+ 627   4              }
+ 628   3            }
+ 629   2            else if(Uart2NoRecTime >= 100) 
+ 630   2            {
+ 631   3              WaitSendWifi = 100;
+ 632   3              StepCommWifi = WIFI_NREGEN;
+ 633   3            }
+ 634   2          break;
+ 635   2            
+ 636   2          case WIFI_NREGDT_ACK:
+ 637   2            if(REC_WIFI_DATA) 
+ 638   2            {
+ 639   3              if(UART2_buffer[24] == '+' && UART2_buffer[25] == 'o' && UART2_buffer[26] == 'k') 
+ 640   3              {
+ 641   4                StepCommWifi = WIFI_WMODE;
+ 642   4              }
+ 643   3            }
+ 644   2            else if(Uart2NoRecTime >= 100) 
+ 645   2            {
+ 646   3              WaitSendWifi = 100;
+ 647   3              StepCommWifi = WIFI_NREGDT;
+ 648   3            }
+ 649   2          break;
+ 650   2          // add 2023-2-13 end
+ 651   2            
+ 652   2          case WIFI_WMAC_SEC_ACK: 
+ 653   2      
+ 654   2            if(REC_WIFI_DATA) 
+ 655   2            {
+ 656   3              if(UART2_buffer[0] == '+' && UART2_buffer[1] == 'o' && UART2_buffer[2] == 'k') 
+ 657   3              { 
+ 658   4                MacAddr[0] = IntegrateAscToHex(UART2_buffer[4],UART2_buffer[5]);
+ 659   4                MacAddr[1] = IntegrateAscToHex(UART2_buffer[6],UART2_buffer[7]);
+ 660   4                MacAddr[2] = IntegrateAscToHex(UART2_buffer[8],UART2_buffer[9]);
+ 661   4                MacAddr[3] = IntegrateAscToHex(UART2_buffer[10],UART2_buffer[11]);
+ 662   4                MacAddr[4] = IntegrateAscToHex(UART2_buffer[12],UART2_buffer[13]);
+ 663   4                MacAddr[5] = IntegrateAscToHex(UART2_buffer[14],UART2_buffer[15]);
+ 664   4                
+ 665   4                StepCommWifi = WIFI_TCPON_SEC;
+ 666   4              } 
+ 667   3            }
+ 668   2            else if(Uart2NoRecTime >= 100) 
+ 669   2            {
+ 670   3              WaitSendWifi = 100;
+ 671   3              StepCommWifi = WIFI_WMAC_SEC;
+ 672   3            }
+ 673   2          break;
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 12  
+
+ 674   2            
+ 675   2          case WIFI_WMODE_ACK:
+ 676   2            if(REC_WIFI_DATA) 
+ 677   2            {
+ 678   3              if(UART2_buffer[14] == '+' && UART2_buffer[15] == 'o' && UART2_buffer[16] == 'k') 
+ 679   3              {
+ 680   4                StepCommWifi = WIFI_RESET1;
+ 681   4              }
+ 682   3            }
+ 683   2            else if(Uart2NoRecTime >= 100) 
+ 684   2            {
+ 685   3              WaitSendWifi = 100;
+ 686   3              StepCommWifi = WIFI_WMODE;
+ 687   3            }
+ 688   2          break;
+ 689   2            
+ 690   2          case WIFI_WNETP_ACK:
+ 691   2            if(REC_WIFI_DATA) 
+ 692   2            {
+ 693   3              if(UART2_buffer[36] == '+' && UART2_buffer[37] == 'o' && UART2_buffer[38] == 'k') 
+ 694   3              {
+ 695   4                //StepCommWifi = WIFI_RESET1;
+ 696   4                StepCommWifi = WIFI_TCPTO;
+ 697   4              }
+ 698   3            }
+ 699   2            else if(Uart2NoRecTime >= 100) 
+ 700   2            {
+ 701   3              WaitSendWifi = 100;
+ 702   3              StepCommWifi = WIFI_WNETP;
+ 703   3            }
+ 704   2          break;
+ 705   2          
+ 706   2          case WIFI_TCPTO_ACK:
+ 707   2            if(REC_WIFI_DATA) 
+ 708   2            {
+ 709   3              if(UART2_buffer[12] == '+' && UART2_buffer[13] == 'o' && UART2_buffer[14] == 'k') 
+ 710   3              {
+ 711   4                StepCommWifi = WIFI_CMDPW;
+ 712   4              }
+ 713   3            }
+ 714   2            else if(Uart2NoRecTime >= 100) 
+ 715   2            {
+ 716   3              WaitSendWifi = 100;
+ 717   3              StepCommWifi = WIFI_TCPTO;
+ 718   3            }
+ 719   2          break;
+ 720   2            
+ 721   2          case WIFI_CMDPW_ACK:
+ 722   2            if(REC_WIFI_DATA) 
+ 723   2            {
+ 724   3              if(UART2_buffer[13] == '+' && UART2_buffer[14] == 'o' && UART2_buffer[15] == 'k') 
+ 725   3              {
+ 726   4                StepCommWifi = WIFI_RESET1;
+ 727   4              }
+ 728   3            }
+ 729   2            else if(Uart2NoRecTime >= 100) 
+ 730   2            {
+ 731   3              WaitSendWifi = 100;
+ 732   3              StepCommWifi = WIFI_CMDPW;
+ 733   3            }
+ 734   2          break;
+ 735   2            
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 13  
+
+ 736   2          case WIFI_RESET1_ACK:
+ 737   2            if(REC_WIFI_DATA) 
+ 738   2            {
+ 739   3              if(UART2_buffer[6] == '+' && UART2_buffer[7] == 'o' && UART2_buffer[8] == 'k') 
+ 740   3              {
+ 741   4                WaitSendWifi = 150;
+ 742   4                StepCommWifi = WIFI_APPLY1_AT;
+ 743   4              } 
+ 744   3            }
+ 745   2            else if(Uart2NoRecTime >= 100) 
+ 746   2            {
+ 747   3              WaitSendWifi = 100;
+ 748   3              StepCommWifi = WIFI_RESET1;
+ 749   3            }
+ 750   2          break;
+ 751   2            
+ 752   2          case WIFI_APPLY1_AT_ACK: 
+ 753   2            if(REC_WIFI_DATA) 
+ 754   2            {
+ 755   3              if(UART2_buffer[0] == 'a') 
+ 756   3              {
+ 757   4                StepCommWifi = WIFI_ENT1_AT;
+ 758   4              }
+ 759   3            }
+ 760   2            else if(Uart2NoRecTime >= 100) 
+ 761   2            {
+ 762   3              WaitSendWifi = 100;
+ 763   3              StepCommWifi = WIFI_APPLY1_AT;
+ 764   3            }
+ 765   2          break;
+ 766   2        
+ 767   2          case WAIT_ENT1_AT_ACK:  
+ 768   2            if(REC_WIFI_DATA) 
+ 769   2            {
+ 770   3              if(UART2_buffer[0] == '+' && UART2_buffer[1] == 'o' && UART2_buffer[2] == 'k') 
+ 771   3              {
+ 772   4                WaitSendWifi = 600;
+ 773   4                StepCommWifi = WIFI_WSLK;
+ 774   4              }
+ 775   3            }
+ 776   2            else if(Uart2NoRecTime >= 100) 
+ 777   2            {
+ 778   3              WaitSendWifi = 100;
+ 779   3              StepCommWifi = WIFI_APPLY1_AT;
+ 780   3            }
+ 781   2          break;  
+ 782   2            
+ 783   2          case WIFI_WSLK_ACK:
+ 784   2            if(REC_WIFI_DATA) 
+ 785   2            {
+ 786   3              if(UART2_buffer[13] == 'D' && UART2_buffer[14] == 'i' && UART2_buffer[15] == 's')
+ 787   3              {
+ 788   4                WaitSendWifi = 10;
+ 789   4                StepCommWifi = WIFI_WSLK;
+ 790   4              }
+ 791   3              else if(UART2_buffer[9] == '+' && UART2_buffer[10] == 'o' && UART2_buffer[11] == 'k')
+ 792   3              {
+ 793   4                StepCommWifi = WIFI_TCPON;
+ 794   4              }
+ 795   3              else if(UART2_buffer[0] == 's' && UART2_buffer[1] == 'o' && UART2_buffer[2] == 'k')
+ 796   3              {
+ 797   4                StepCommWifi = WIFI_APPLY_AT;
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 14  
+
+ 798   4              }
+ 799   3            }
+ 800   2            else if(Uart2NoRecTime >= 100) 
+ 801   2            {
+ 802   3              WaitSendWifi = 100;
+ 803   3              StepCommWifi = WIFI_WSLK;
+ 804   3            }
+ 805   2          
+ 806   2          break;
+ 807   2            
+ 808   2          case WIFI_TCPON_ACK:  
+ 809   2            if(REC_WIFI_DATA) 
+ 810   2            {
+ 811   3              if(UART2_buffer[14] == '+' && UART2_buffer[15] == 'o' && UART2_buffer[16] == 'k') 
+ 812   3              {
+ 813   4                StepCommWifi = WIFI_TCPEN;
+ 814   4              } 
+ 815   3            }
+ 816   2            else if(Uart2NoRecTime >= 100) 
+ 817   2            {
+ 818   3              WaitSendWifi = 100;
+ 819   3              StepCommWifi = WIFI_TCPON;
+ 820   3            }
+ 821   2          break;  
+ 822   2            
+ 823   2          case WIFI_TCPON_SEC_ACK:  
+ 824   2            if(REC_WIFI_DATA) 
+ 825   2            {
+ 826   3              if(UART2_buffer[0] == '+' && UART2_buffer[1] == 'o' && UART2_buffer[2] == 'k') 
+ 827   3              {
+ 828   4                StepCommWifi = WIFI_TCPEN_SEC;
+ 829   4              } 
+ 830   3            }
+ 831   2            else if(Uart2NoRecTime >= 100) 
+ 832   2            {
+ 833   3              WaitSendWifi = 1000;
+ 834   3              StepCommWifi = WIFI_TCPON_SEC;
+ 835   3            }
+ 836   2          break;  
+ 837   2            
+ 838   2          case WIFI_TCPEN_ACK:  
+ 839   2            if(REC_WIFI_DATA) 
+ 840   2            {
+ 841   3              if(UART2_buffer[14] == '=' && UART2_buffer[15] == 'o' && UART2_buffer[16] == 'n') 
+ 842   3              {
+ 843   4                StepCommWifi = WIFI_TCPLK;
+ 844   4              } 
+ 845   3            }
+ 846   2            else if(Uart2NoRecTime >= 100) 
+ 847   2            {
+ 848   3              WaitSendWifi = 100;
+ 849   3              StepCommWifi = WIFI_TCPEN;
+ 850   3            }
+ 851   2          break;    
+ 852   2            
+ 853   2          case WIFI_TCPEN_SEC_ACK:  
+ 854   2            if(REC_WIFI_DATA) 
+ 855   2            {
+ 856   3              if(UART2_buffer[3] == '=' && UART2_buffer[4] == 'o' && UART2_buffer[5] == 'n') 
+ 857   3              {
+ 858   4                StepCommWifi = WIFI_TCPLK_SEC;
+ 859   4              } 
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 15  
+
+ 860   3            }
+ 861   2            else if(Uart2NoRecTime >= 100) 
+ 862   2            {
+ 863   3              WaitSendWifi = 1000;
+ 864   3              StepCommWifi = WIFI_TCPEN_SEC;
+ 865   3            }
+ 866   2          break;  
+ 867   2            
+ 868   2          case WIFI_TCPLK_ACK:  
+ 869   2            if(REC_WIFI_DATA) 
+ 870   2            {
+ 871   3              if(UART2_buffer[13] == '=' && UART2_buffer[14] == 'o' && UART2_buffer[15] == 'n') 
+ 872   3              {
+ 873   4                StepCommWifi = WIFI_RESET2;
+ 874   4                
+ 875   4                iapErase(WIFI_SETTED_FLAG);
+ 876   4                iapWrite(WIFI_SETTED_FLAG,99);
+ 877   4              } 
+ 878   3            }
+ 879   2            else if(Uart2NoRecTime >= 100) 
+ 880   2            {
+ 881   3              WaitSendWifi = 100;
+ 882   3              StepCommWifi = WIFI_TCPLK;
+ 883   3            }
+ 884   2          break;  
+ 885   2            
+ 886   2          case WIFI_TCPLK_SEC_ACK:  
+ 887   2      
+ 888   2            if(REC_WIFI_DATA) 
+ 889   2            {
+ 890   3      //        Uart2SendStr("debug line 762\r");
+ 891   3      //        Uart2SendStr(UART2_buffer);
+ 892   3              if(UART2_buffer[3] == '=' && UART2_buffer[4] == 'o') 
+ 893   3              {
+ 894   4                StepCommWifi = INIT_WIFI;
+ 895   4              } 
+ 896   3            }
+ 897   2            else if(Uart2NoRecTime >= 100) 
+ 898   2            {
+ 899   3              WaitSendWifi = 1000;
+ 900   3              StepCommWifi = WIFI_TCPLK_SEC;
+ 901   3            }
+ 902   2          break;  
+ 903   2            
+ 904   2          case WIFI_RESET2_ACK:   
+ 905   2            if(REC_WIFI_DATA) 
+ 906   2            {
+ 907   3              if(UART2_buffer[6] == '+' && UART2_buffer[7] == 'o' && UART2_buffer[8] == 'k') 
+ 908   3              {
+ 909   4                WaitSendWifi = 150;
+ 910   4                StepCommWifi = INIT_WIFI;
+ 911   4              } 
+ 912   3            }
+ 913   2            else if(Uart2NoRecTime >= 100) 
+ 914   2            {
+ 915   3              WaitSendWifi = 100;
+ 916   3              StepCommWifi = WIFI_RESET2;
+ 917   3            }
+ 918   2          break;    
+ 919   2              
+ 920   2          case SERVER_HAND_ACK:
+ 921   2            if(REC_WIFI_DATA) 
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 16  
+
+ 922   2            {
+ 923   3              if(fVerifyServerCammand() && UART2_buffer[9] == 'H')  //53 56 B1 B2 B3 B4 B5 B6 0C 48 05 32
+ 924   3              {
+ 925   4                StepCommWifi = WIFI_IDLE;
+ 926   4              }
+ 927   3              else
+ 928   3              {
+ 929   4                StepCommWifi = SERVER_HAND;
+ 930   4              }
+ 931   3            }
+ 932   2            else if(Uart2NoRecTime >= 300) 
+ 933   2            {
+ 934   3              StepCommWifi = SERVER_HAND;
+ 935   3            }
+ 936   2          break;
+ 937   2            
+ 938   2          // wifi receive
+ 939   2          // As long as the command is received, no matter what the status is Enter send mode 
+ 940   2            
+ 941   2          case WIFI_IDLE:             //only wait for receive server command
+ 942   2            if(REC_WIFI_DATA) 
+ 943   2            {
+ 944   3              if(fVerifyServerCammand() && UART2_buffer[8] == 0x0E)   //check frame and frame length, 14 bytes for se
+             -rver command
+ 945   3              {
+ 946   4                ServerCommand = UART2_buffer[9];
+ 947   4                ReplyTime = UART2_buffer[10];           //reply until this time count down
+ 948   4                ReplayLen = UART2_buffer[11];           //minimum length of reply   
+ 949   4                ReplayServerCount = ReplyTime * 10;
+ 950   4                
+ 951   4                afterRevServerCommand();             //add 2022-2-12
+ 952   4                //StepCommWifi = REC_SERVER_COMMAND;      //turn to command mode  //del 2022-2-12
+ 953   4              }
+ 954   3              
+ 955   3              fClean_RecWIFI_Buf();  // add 2022-2-12
+ 956   3            } 
+ 957   2            else if(Uart2NoRecTime >= 100)  fClean_RecWIFI_Buf();
+ 958   2          
+ 959   2          break;
+ 960   2            
+ 961   2        }
+ 962   1      }
+ 963              
+ 964          
+ 965          //unsigned char AscToHex(unsigned char aHex)
+ 966          //  {
+ 967          //    if((aHex>=0)&&(aHex<=9))
+ 968          //    aHex += 0x30;
+ 969          //    else if((aHex>=10)&&(aHex<=15))//A-F
+ 970          //    aHex += 0x37;
+ 971          //    else aHex = 0xff;
+ 972          //    return Hex;
+ 973          //  }
+ 974          
+ 975          unsigned char HexToAsc(unsigned char aChar)
+ 976          {
+ 977   1        if((aChar>=0x30)&&(aChar<=0x39))
+ 978   1        aChar -= 0x30;
+ 979   1        else if((aChar>=0x41)&&(aChar<=0x46))//capital
+ 980   1        aChar -= 0x37;
+ 981   1        else if((aChar>=0x61)&&(aChar<=0x66))//small
+ 982   1        aChar -= 0x57;
+C51 COMPILER V9.59.0.0   WIFI                                                              02/13/2023 07:59:41 PAGE 17  
+
+ 983   1        else aChar = 0xff;
+ 984   1        return aChar;
+ 985   1      }   
+ 986            
+ 987          unsigned char IntegrateAscToHex(unsigned char High_aChar,unsigned char Low_aChar)
+ 988          {
+ 989   1        unsigned char Hex;
+ 990   1        Hex = (HexToAsc(High_aChar) << 4) + HexToAsc(Low_aChar);
+ 991   1        return Hex;
+ 992   1      } 
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   4037    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    642    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1      15
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

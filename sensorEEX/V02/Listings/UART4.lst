@@ -1,0 +1,90 @@
+C51 COMPILER V9.56.0.0   UART4                                                             10/09/2019 18:51:06 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE UART4
+OBJECT MODULE PLACED IN .\Objects\UART4.obj
+COMPILER INVOKED BY: d:\tools\Programs\Keil\Keil_MDKv5\C51\BIN\C51.EXE Source\UART4.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\
+                    -Include) DEBUG OBJECTEXTEND PRINT(.\Listings\UART4.lst) OBJECT(.\Objects\UART4.obj)
+
+line level    source
+
+   1          
+   2          /****************************************Copyright (c)*********************************************
+   3          **                                     佛山三俊电子有限公司
+   4          **                                                                             开   发   部
+   5          **--------------文件信息---------------------------------------------------------------------------
+   6          **文   件   名: 
+   7          **创   建   人: 
+   8          **创 建 日 期 ：
+   9          **描        述: 
+  10          **--------------当前版本修订-----------------------------------------------------------------------
+  11          ** 修改人: 
+  12          ** 日　期: 
+  13          ** 描　述: 
+  14          **
+  15          **************************************************************************************************/
+  16          #define UART4_GLOBALS
+  17          
+  18          #include "Includes.h"
+  19          
+  20          //void Uart4Isr() interrupt 18
+  21          //{
+  22          //    if (S4CON & 0x02)
+  23          //    {
+  24          //        S4CON &= ~0x02;                               //发送完成准备接收
+  25          //        bUART4_Busy = 0;
+  26          //              pUART4_rptr = 0;                
+  27          ////            NoRecTime = 0;
+  28          ////            fTurnSendState();
+  29          //    }
+  30          //    if (S4CON & 0x01)
+  31          //    {
+  32          //        S4CON &= ~0x01;
+  33          ////        UART4_buffer[pUART4_rptr++] = S4BUF;
+  34          ////            NoRecTime = 0;
+  35          //    }
+  36          //}
+  37          
+  38          //void Uart4Init()
+  39          //{
+  40          //    S4CON = 0x50;
+  41          //    T4L = BRT_U4;
+  42          //    T4H = BRT_U4 >> 8;
+  43          //    T4T3M |= 0xa0;
+  44          //    pUART4_wptr = 0x00;
+  45          //    pUART4_rptr = 0x00;
+  46          //    bUART4_Busy = 0;
+  47          //      
+  48          //      IE2 |= ES4;
+  49          //}
+  50          
+  51          //void Uart4Send(char dat)
+  52          //{
+  53          //      if(!bUART4_Busy)
+  54          //      {       
+C51 COMPILER V9.56.0.0   UART4                                                             10/09/2019 18:51:06 PAGE 2   
+
+  55          //              bUART4_Busy = 1;
+  56          //              S4BUF = dat;
+  57          //      }
+  58          //}
+  59          
+  60          //void Uart4SendStr(char *p)
+  61          //{
+  62          //    while(*p) Uart4Send(*p++);                //发送远程数据
+  63          //}
+  64          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

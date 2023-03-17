@@ -1,0 +1,1 @@
+"Source\eeprom.c" OPTIMIZE (8,SPEED) BROWSE INCDIR(.\Include) DEBUG OBJECTEXTEND PRINT(.\Listings\eeprom.lst) TABS (2) OBJECT(.\Objects\eeprom.obj)

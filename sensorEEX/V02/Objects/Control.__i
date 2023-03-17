@@ -1,0 +1,1 @@
+"Source\Control.c" OPTIMIZE (8,SPEED) BROWSE INCDIR(.\Include) DEBUG OBJECTEXTEND PRINT(.\Listings\Control.lst) TABS (2) OBJECT(.\Objects\Control.obj)

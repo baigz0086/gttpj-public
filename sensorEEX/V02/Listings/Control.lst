@@ -1,0 +1,557 @@
+C51 COMPILER V9.59.0.0   CONTROL                                                           02/12/2023 17:52:19 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE CONTROL
+OBJECT MODULE PLACED IN .\Objects\Control.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Source\Control.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Include) DEBUG OBJECT
+                    -EXTEND PRINT(.\Listings\Control.lst) TABS(2) OBJECT(.\Objects\Control.obj)
+
+line level    source
+
+   1          /****************************************Copyright (c)*********************************************
+   2          **                                     ·ðÉ½Èý¿¡µç×ÓÓÐÏÞ¹«Ë¾
+   3          **                         ¿ª   ·¢   ²¿
+   4          **--------------ÎÄ¼þÐÅÏ¢---------------------------------------------------------------------------
+   5          **ÎÄ   ¼þ   Ãû: Control.c
+   6          **´´   ½¨   ÈË: 
+   7          **´´ ½¨ ÈÕ ÆÚ £º
+   8          **Ãè        Êö: 
+   9          **--------------µ±Ç°°æ±¾ÐÞ¶©-----------------------------------------------------------------------
+  10          ** ÐÞ¸ÄÈË: 
+  11          ** ÈÕ¡¡ÆÚ: 
+  12          ** Ãè¡¡Êö: 
+  13          **
+  14          **************************************************************************************************/
+  15          #define CTRL_GLOBALS
+  16          
+  17          #include "Includes.h"
+  18          
+  19          
+  20          /**************************************************************************************************
+  21          **  º¯ÊýÃû³Æ: InitPort()
+  22          **  ¹¦  ÄÜ  : ³õÊ¼»¯IO¿Ú 
+  23          **  Èë¿Ú²ÎÊý: ÎÞ 
+  24          **  ³ö¿Ú²ÎÊý: ÎÞ 
+  25          **  ·µ»ØÖµ  £º  ÎÞ 
+  26          **  È«¾Ö±äÁ¿: ÎÞ 
+  27          **  µ÷ÓÃÄ£¿é: ÎÞ 
+  28          **  ×÷  Õß  : 
+  29          **  ÈÕ  ÆÚ  : 
+  30          **************************************************************************************************/
+  31          void InitPort(void)
+  32          {
+  33   1      
+  34   1      //  P1   = 0x01;      //no receive in uart2 when set this register
+  35   1        P1M1 = 0; 
+  36   1        P1M0 = 0;
+  37   1        
+  38   1        P3   = 0x43;
+  39   1        P3M1 = 0x40; 
+  40   1        P3M0 = 0x40;
+  41   1        P3PU &= ~0x40;
+  42   1        
+  43   1        P5   = 0x10;
+  44   1        P5M1 = 0x00; 
+  45   1        P5M0 = 0x00;
+  46   1      
+  47   1      }
+  48          
+  49          /**************************************************************************************************
+  50          **  º¯ÊýÃû³Æ: WatchdogInit()
+  51          **  ¹¦  ÄÜ  : ¿´ÃÅ¹·³õÊ¼»¯ 
+  52          **  Èë¿Ú²ÎÊý: ÎÞ 
+  53          **  ³ö¿Ú²ÎÊý: ÎÞ 
+  54          **  ·µ»ØÖµ  £ºÎÞ 
+C51 COMPILER V9.59.0.0   CONTROL                                                           02/12/2023 17:52:19 PAGE 2   
+
+  55          **  È«¾Ö±äÁ¿: ÎÞ 
+  56          **  µ÷ÓÃÄ£¿é: ÎÞ 
+  57          **  ×÷  Õß  :
+  58          **  ÈÕ  ÆÚ  : 
+  59          **************************************************************************************************/
+  60          void WatchdogInit(void)
+  61          {
+  62   1      
+  63   1        WDT_CONTR = 0x04;       //¿´ÃÅ¹·¶¨Ê±Æ÷Òç³öÊ±¼ä¼ÆËã¹«Ê½: (12 * 32768 * PS) / FOSC (Ãë)
+  64   1                                  //ÉèÖÃ¿´ÃÅ¹·¶¨Ê±Æ÷·ÖÆµÊýÎª32,Òç³öÊ±¼äÈçÏÂ:
+  65   1                                  //11.0592M : 1.14s
+  66   1                                  //18.432M  : 0.68s
+  67   1                                  //20M      : 0.63s
+  68   1        WDT_CONTR |= 0x20;      //Æô¶¯¿´ÃÅ¹· 
+  69   1      
+  70   1      }
+  71          
+  72          //u8 Match;
+  73          
+  74          void Control_Init(void)
+  75          { 
+  76   1        EA = 0;                 /* Interrupt disable */  
+  77   1        
+  78   1        InitPort();   
+  79   1        WatchdogInit();
+  80   1        Time0_Init();
+  81   1        Uart1Init();      //sence p30 rx p31 tx
+  82   1        Uart2Init();      //wifi p10 rx p11 tx
+  83   1      //  Uart3Init();      //wifi p00 rx p01 tx
+  84   1      //  Uart4Init();      //sence p02 rx p03 tx
+  85   1        
+  86   1        fClean_RecSensor_Buf();
+  87   1        WaitSensorData = 1000;
+  88   1        StepCommSensor = HAND_SENSOR;
+  89   1        
+  90   1        SendInterval = 100;   //default 1s
+  91   1        
+  92   1        Year = 0;
+  93   1        Month = 1;
+  94   1        Day = 1;
+  95   1        Hour = 0;
+  96   1        Minute = 0;
+  97   1        Second = 0;
+  98   1        OTSecond = 0;
+  99   1        
+ 100   1        timestamp.milSec = 0;
+ 101   1        
+ 102   1        fInitWifi();
+ 103   1        
+ 104   1        iapInit();
+ 105   1      
+ 106   1        oLED = 1;
+ 107   1        
+ 108   1        EA = 1;                     /* Interrupt enable */
+ 109   1      //  Uart1SendStr("Uart Test !\r\n");
+ 110   1      }
+ 111          
+ 112          
+ 113          void fKey_reload(void)
+ 114          {
+ 115   1      //  if(ilKey)     // key press
+ 116   1      //  {
+C51 COMPILER V9.59.0.0   CONTROL                                                           02/12/2023 17:52:19 PAGE 3   
+
+ 117   1      //    olReload = 0;
+ 118   1      //  }
+ 119   1      //  else
+ 120   1      //  {
+ 121   1      //    olReload = 1;
+ 122   1      //  }
+ 123   1      }
+ 124          
+ 125          void ConFunction(void)
+ 126          {
+ 127   1        WDT_CONTR |= 0x10;
+ 128   1        
+ 129   1        fKey_reload();
+ 130   1        
+ 131   1        if(bDo10ms) Do10ms();
+ 132   1        if(bDo100ms) Do100ms();
+ 133   1        
+ 134   1        if(WaitSensorData == 0) fSendToSensor();
+ 135   1        fRecSensor();
+ 136   1        
+ 137   1        if(WaitSendWifi == 0) fSendToWIFI();
+ 138   1        fRecWifi();
+ 139   1        
+ 140   1      }
+ 141          
+ 142          
+ 143          
+ 144          
+ 145          void fClean_RecSensor_Buf(void)
+ 146          {
+ 147   1        u8 i;
+ 148   1        for(i=0;i<70;i++) UART1_buffer[i] = 0;
+ 149   1        pUART1_rptr = 0;    
+ 150   1        Uart1NoRecTime = 0; 
+ 151   1      }
+ 152          
+ 153          void fSendToSensor(void)
+ 154          {
+ 155   1        switch(StepCommSensor)
+ 156   1        {
+ 157   2          case HAND_SENSOR:             //shake hand sensor first
+ 158   2            fClean_RecSensor_Buf();
+ 159   2            Uart1Send('0'); 
+ 160   2            StepCommSensor = WAIT_HAND_SENSOR;
+ 161   2          break;
+ 162   2        
+ 163   2          case HAND2_SENSOR:            //shake hand sensor second
+ 164   2            fClean_RecSensor_Buf();
+ 165   2            Uart1Send('0'); 
+ 166   2            StepCommSensor = WAIT_HAND2_SENSOR;
+ 167   2          break;
+ 168   2          
+ 169   2          case STUDY_SENSOR:            //study continue 30 second
+ 170   2            fClean_RecSensor_Buf();
+ 171   2            Uart1Send('G'); 
+ 172   2          
+ 173   2            StepCommSensor = WAIT_STUDY_SENSOR;
+ 174   2          break;
+ 175   2          
+ 176   2          case RESET_SENSOR:            //reset Mio
+ 177   2            fClean_RecSensor_Buf();
+ 178   2            Uart1Send('u'); 
+C51 COMPILER V9.59.0.0   CONTROL                                                           02/12/2023 17:52:19 PAGE 4   
+
+ 179   2          
+ 180   2            //IAP_CONTR = 0x60;           //reset STC
+ 181   2            bSend_MIO_4_1000 = 1; // trace to server
+ 182   2            StepCommSensor = WAIT_RESET_SENSOR;
+ 183   2          break;
+ 184   2          
+ 185   2          case RESET_SENSOR1:           //reset Mio
+ 186   2            fClean_RecSensor_Buf();
+ 187   2            Uart1Send('0'); 
+ 188   2          
+ 189   2            //IAP_CONTR = 0x60;           //reset STC
+ 190   2            bSend_MIO_4_1000 = 1; // trace to server
+ 191   2            StepCommSensor = WAIT_RESET_SENSOR1;
+ 192   2          break;
+ 193   2          
+ 194   2          case RESET_SENSOR2:           //reset Mio
+ 195   2            fClean_RecSensor_Buf();
+ 196   2            Uart1Send('u'); 
+ 197   2          
+ 198   2            //IAP_CONTR = 0x60;           //reset STC
+ 199   2            bSend_MIO_4_1000 = 1; // trace to server
+ 200   2            StepCommSensor = WAIT_RESET_SENSOR2;
+ 201   2          break;
+ 202   2              
+ 203   2          // add by 2022-2-12
+ 204   2          case QUERY_STUDY_STATE: 
+ 205   2            fClean_RecSensor_Buf();
+ 206   2            Uart1Send('b'); 
+ 207   2          
+ 208   2      //      bCommandResult=0;
+ 209   2            ServerCommand = 'b';
+ 210   2            StepCommSensor = WAIT_QUERY_STATE;
+ 211   2          break;
+ 212   2          
+ 213   2          case SAVE_SENSOR:           //save surrounding parameter
+ 214   2            fClean_RecSensor_Buf();
+ 215   2            Uart1Send('S'); 
+ 216   2          
+ 217   2            ServerCommand = 'S';
+ 218   2            StepCommSensor = WAIT_SAVE_SNESOR;
+ 219   2          break;
+ 220   2          
+ 221   2          case IDLE_SENSOR:           //sensor ready
+ 222   2            if(StepCommWifi == WIFI_IDLE)   //no receive server command,then query data 
+ 223   2            {
+ 224   3              fClean_RecSensor_Buf();
+ 225   3              if(bMamori){
+ 226   4                Uart1Send('3'); 
+ 227   4                StepCommSensor = WAIT_READY_SENSOR;
+ 228   4              }
+ 229   3            }
+ 230   2            else if(StepCommWifi == REC_SERVER_COMMAND)
+ 231   2            {
+ 232   3              //StepCommSensor = SEND_SENSOR_COMMAND; // if receive server command,and no in normal data mode,
+ 233   3                                                      // turn to send sensor command
+ 234   3              
+ 235   3              //add 2022-2-12
+ 236   3              switch(ServerCommand)
+ 237   3              {
+ 238   4                case 'G':
+ 239   4                  StepCommSensor = STUDY_SENSOR;     // study
+ 240   4                break;
+C51 COMPILER V9.59.0.0   CONTROL                                                           02/12/2023 17:52:19 PAGE 5   
+
+ 241   4                case 'u':
+ 242   4                  StepCommSensor = RESET_SENSOR1;    // reset  // ÏÈ·¢ËÍ0£¬³É¹¦Á¬½Óºó·¢ËÍu
+ 243   4                break;
+ 244   4                default:
+ 245   4                  bCommandResult = 0;         
+ 246   4                  bServer_Cmd_Ack = 1;        
+ 247   4                break;
+ 248   4              }
+ 249   3            }                                         
+ 250   2          break;
+ 251   2      
+ 252   2          case READY_SENSOR:
+ 253   2            fClean_RecSensor_Buf();
+ 254   2            Uart1Send('3'); 
+ 255   2            StepCommSensor = WAIT_READY_SENSOR;
+ 256   2          break;
+ 257   2          
+ 258   2          case DATA_SENSOR: 
+ 259   2            fClean_RecSensor_Buf();
+ 260   2            Uart1Send('4'); 
+ 261   2            StepCommSensor = WAIT_DATA_SENSOR;
+ 262   2          break;
+ 263   2          
+ 264   2          case SEND_SENSOR_COMMAND:
+ 265   2            fClean_RecSensor_Buf();
+ 266   2            bServer_Cmd_Ack = 0;
+ 267   2            Uart1Send(ServerCommand);   
+ 268   2            StepCommSensor = WAIT_SENSOR_CMDACK;  // turn to wait command data of sensor
+ 269   2          break;
+ 270   2          
+ 271   2        }
+ 272   1      }
+ 273          
+ 274          
+ 275          // ÉÏµç4.6ÃëSENSOR·¢ËÍ "AT+WRUART=57600£¬1£¬N\r\n"
+ 276          
+ 277          void fRecSensor(void)
+ 278          {
+ 279   1        switch(StepCommSensor)
+ 280   1        {
+ 281   2          case WAIT_HAND_SENSOR:  
+ 282   2            if(Uart1NoRecTime >= 5 && pUART1_rptr >= 1) 
+ 283   2            {
+ 284   3              if(UART1_buffer[0] == '1') 
+ 285   3              {
+ 286   4                StepCommSensor = HAND2_SENSOR;  
+ 287   4                WaitSensorData = 100;
+ 288   4              }
+ 289   3              else
+ 290   3              {
+ 291   4                StepCommSensor = HAND_SENSOR; 
+ 292   4                WaitSensorData = 100;
+ 293   4              }
+ 294   3            }
+ 295   2            else if(Uart1NoRecTime >= 100)  StepCommSensor = HAND_SENSOR;
+ 296   2          break;
+ 297   2        
+ 298   2          case WAIT_HAND2_SENSOR: 
+ 299   2            if(Uart1NoRecTime >= 5 && pUART1_rptr >= 1) 
+ 300   2            { 
+ 301   3              if(UART1_buffer[0] == '1') 
+ 302   3              {
+C51 COMPILER V9.59.0.0   CONTROL                                                           02/12/2023 17:52:19 PAGE 6   
+
+ 303   4                //StepCommSensor = STUDY_SENSOR;     //del 2022-2-12
+ 304   4                //WaitSensorData = 500;              //del 2022-2-12
+ 305   4                
+ 306   4                // change STUDY_SENSOR->IDLE_SENSOR  2022-2-12
+ 307   4                StepCommSensor = IDLE_SENSOR;
+ 308   4              }
+ 309   3            }
+ 310   2            else if(Uart1NoRecTime >= 100)  StepCommSensor = HAND_SENSOR;
+ 311   2          break;  
+ 312   2            
+ 313   2          case WAIT_STUDY_SENSOR: 
+ 314   2            if(Uart1NoRecTime >= 5 && pUART1_rptr >= 1) 
+ 315   2            {
+ 316   3              if(UART1_buffer[0] == '1') 
+ 317   3              {
+ 318   4                StepCommSensor = SAVE_SENSOR;
+ 319   4              }else{
+ 320   4                StepCommSensor = QUERY_STUDY_STATE;
+ 321   4                WaitSensorData = 1000;
+ 322   4                
+ 323   4                bCommandResult = UART1_buffer[0];  // the result is failt by Study Command.
+ 324   4                bServer_Cmd_res = 1;          
+ 325   4              }
+ 326   3            }
+ 327   2            //else if(Uart1NoRecTime >= 3500) StepCommSensor = HAND_SENSOR; //del by 2022-2-12
+ 328   2            else if(Uart1NoRecTime >= 500) StepCommSensor = QUERY_STUDY_STATE;    //add by 2022-2-12
+ 329   2          break;
+ 330   2          
+ 331   2          //add by 2022-2-12
+ 332   2          case WAIT_QUERY_STATE:  
+ 333   2            if(Uart1NoRecTime >= 5 && pUART1_rptr >= 1) 
+ 334   2            {
+ 335   3              if(UART1_buffer[0] == '4') 
+ 336   3              {
+ 337   4                StepCommSensor = SAVE_SENSOR;
+ 338   4                bCommandResult = 0;
+ 339   4              }else if(UART1_buffer[0] == '2'){
+ 340   4                StepCommSensor = QUERY_STUDY_STATE;
+ 341   4                WaitSensorData = 200;
+ 342   4                
+ 343   4                bCommandResult = UART1_buffer[0];  // the result is failt by Study Command.
+ 344   4                bServer_Cmd_res = 1;  
+ 345   4                
+ 346   4              }else{
+ 347   4                StepCommSensor = IDLE_SENSOR;
+ 348   4                
+ 349   4                bCommandResult = UART1_buffer[0];  // the result is failt by Study Command.
+ 350   4                bServer_Cmd_Ack = 1;  
+ 351   4                
+ 352   4              }
+ 353   3            }
+ 354   2            else if(Uart1NoRecTime >= 200) StepCommSensor = QUERY_STUDY_STATE;    //2 second cycle confirmation
+ 355   2          break;
+ 356   2          
+ 357   2          case WAIT_SAVE_SNESOR:  
+ 358   2            if(Uart1NoRecTime >= 5 && pUART1_rptr >= 1) 
+ 359   2            {
+ 360   3              if(UART1_buffer[0] == '1') 
+ 361   3              {
+ 362   4                StepCommSensor = IDLE_SENSOR;
+ 363   4                bServer_Cmd_Ack = 1;        // add by 2022-2-12
+ 364   4              }
+C51 COMPILER V9.59.0.0   CONTROL                                                           02/12/2023 17:52:19 PAGE 7   
+
+ 365   3            }
+ 366   2            else if(Uart1NoRecTime >= 1500)  StepCommSensor = IDLE_SENSOR;
+ 367   2          break;
+ 368   2            
+ 369   2          case WAIT_READY_SENSOR:     //normal qurey data ack
+ 370   2            if(Uart1NoRecTime >= 5 && pUART1_rptr >= 1) 
+ 371   2            {
+ 372   3              if(UART1_buffer[0] == '1') {
+ 373   4                StepCommSensor = DATA_SENSOR;
+ 374   4              }else if(Uart1NoRecTime >= 100){   // ÐÂ°æMio¶ÔÓ¦£ºÃüÁî3ÓÐ»Ø´ð1µÄÇé¿ö£¬¶ÔÓ¦·½·¨£º1sºóÔÙ´Î·¢ÐÐÃüÁî3
+ 375   4                bSend_MIO_3_1000 = 1; // trace to server
+ 376   4                
+ 377   4                StepCommSensor = IDLE_SENSOR;
+ 378   4              }
+ 379   3            }
+ 380   2            else if(Uart1NoRecTime >= 100)  
+ 381   2            {
+ 382   3              StepCommSensor = IDLE_SENSOR; 
+ 383   3            }
+ 384   2          break;
+ 385   2          
+ 386   2          case WAIT_DATA_SENSOR:      //normal receive data
+ 387   2            if(Uart1NoRecTime >= 5 && pUART1_rptr >= 31) 
+ 388   2            {
+ 389   3              StepCommSensor = IDLE_SENSOR;
+ 390   3              WaitSensorData = SendInterval-16;     //change by 2022-2-12  84 to var
+ 391   3      
+ 392   3              bSend_WIFI_Data = 1;
+ 393   3            }
+ 394   2            //else if(Uart1NoRecTime >= SendInterval) StepCommSensor = IDLE_SENSOR;  // ÐÂ°æMio¶ÔÓ¦ºáÕ¹¿ª£¬4µÃ²»µ½Ô
+             -¤ÆÚ½á¹ûºó£¬·¢ÐÐ3ÏÂÒ»ÂÖÊý¾Ý²É¼¯
+ 395   2            else if(Uart1NoRecTime >= 100){
+ 396   3              bSend_MIO_4_1000 = 1; // trace to server
+ 397   3              
+ 398   3              StepCommSensor = IDLE_SENSOR;
+ 399   3            }
+ 400   2          break;
+ 401   2          
+ 402   2          case WAIT_SENSOR_CMDACK:    //receive command ack data
+ 403   2            if(Uart1NoRecTime >= 5 && pUART1_rptr >= 1) 
+ 404   2            {
+ 405   3              bServer_Cmd_Ack = 1;
+ 406   3              WaitSensorData = 10;
+ 407   3              StepCommSensor = IDLE_SENSOR;
+ 408   3            }
+ 409   2            else if(Uart1NoRecTime >= 3500)   //if no receive data in 35 seconds, return to idle
+ 410   2            {
+ 411   3              StepCommSensor = IDLE_SENSOR; 
+ 412   3              StepCommWifi = WIFI_IDLE;
+ 413   3            }
+ 414   2          break;
+ 415   2      
+ 416   2          case WAIT_RESET_SENSOR:     
+ 417   2            if(Uart1NoRecTime >= 5 ) 
+ 418   2            {
+ 419   3              WaitSensorData = 100;
+ 420   3              StepCommSensor = RESET_SENSOR1;
+ 421   3              
+ 422   3              bServer_Cmd_Ack = 1;        // add by 2022-2-12
+ 423   3            }
+ 424   2      
+ 425   2          break;
+C51 COMPILER V9.59.0.0   CONTROL                                                           02/12/2023 17:52:19 PAGE 8   
+
+ 426   2            
+ 427   2          case WAIT_RESET_SENSOR1:      
+ 428   2            if(Uart1NoRecTime >= 5 && pUART1_rptr >= 1) 
+ 429   2            {
+ 430   3              if(UART1_buffer[0] == '1') 
+ 431   3              {
+ 432   4                StepCommSensor = RESET_SENSOR2; 
+ 433   4                WaitSensorData = 100;
+ 434   4              }
+ 435   3              else
+ 436   3              {
+ 437   4                StepCommSensor = RESET_SENSOR1; 
+ 438   4                WaitSensorData = 100;
+ 439   4              }
+ 440   3            }
+ 441   2            else if(Uart1NoRecTime >= 100)  StepCommSensor = RESET_SENSOR1;
+ 442   2          break;
+ 443   2            
+ 444   2          case WAIT_RESET_SENSOR2:      
+ 445   2            if(Uart1NoRecTime >= 5 ) 
+ 446   2            {
+ 447   3              WaitSensorData = 100;
+ 448   3              StepCommSensor = HAND_SENSOR;
+ 449   3              
+ 450   3              bServer_Cmd_Ack = 1;        // add by 2022-2-12
+ 451   3            }
+ 452   2      
+ 453   2          break;
+ 454   2        }
+ 455   1      }
+ 456          
+ 457          
+ 458          
+ 459          
+ 460          
+ 461          
+ 462          void fTime(void)
+ 463          {
+ 464   1        timestamp.milSec += 1;
+ 465   1      //  unsigned char Temp;
+ 466   1      //  if(OTSecond < 9) OTSecond++;
+ 467   1      //  else
+ 468   1      //  {
+ 469   1      //    OTSecond = 0;
+ 470   1      //    if(Second < 59) Second++;
+ 471   1      //    else
+ 472   1      //    {
+ 473   1      //      Second = 0;
+ 474   1      //      if(Minute < 59) Minute++;
+ 475   1      //      else
+ 476   1      //      {
+ 477   1      //        Minute = 0;
+ 478   1      //        if(Hour < 23) Hour++;
+ 479   1      //        else
+ 480   1      //        {
+ 481   1      //          Hour = 0;
+ 482   1      //          if(Month == 2)
+ 483   1      //          {
+ 484   1      //          //  if((Year%4==0 && Year%100!=0)||(Year%400==0)) Temp = 29;
+ 485   1      //            if(Year%4==0 && Year%100!=0) Temp = 29;
+ 486   1      //            else Temp = 28;
+ 487   1      //            
+C51 COMPILER V9.59.0.0   CONTROL                                                           02/12/2023 17:52:19 PAGE 9   
+
+ 488   1      //            if(Day < Temp) Day++;
+ 489   1      //            else
+ 490   1      //            {
+ 491   1      //              Day = 1;
+ 492   1      //              Month = 3;
+ 493   1      //            }
+ 494   1      //          }
+ 495   1      //          else
+ 496   1      //          {
+ 497   1      //            Temp = DayOfMon[Month - 1];
+ 498   1      //            if(Day < Temp) Day++;
+ 499   1      //            else
+ 500   1      //            {
+ 501   1      //              Day = 1;
+ 502   1      //              if(Month < 12) Month++;
+ 503   1      //              else
+ 504   1      //              {
+ 505   1      //                Month = 1;
+ 506   1      //                Year++;
+ 507   1      //              }
+ 508   1      //            }
+ 509   1      //          }
+ 510   1      //        }
+ 511   1      //      }
+ 512   1      //    }   
+ 513   1      //  }
+ 514   1      }
+ 515          
+ 516          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1141    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     53    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =     11    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
